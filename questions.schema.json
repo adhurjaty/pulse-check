@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pulse Check question file",
+  "description": "A set of questions to poll a room with. Upload it when creating a room.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "questions"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL of this schema, for editor support. Ignored by the app."
+    },
+    "title": {
+      "type": "string",
+      "description": "Shown on the lobby and summary screens.",
+      "pattern": "\\S",
+      "maxLength": 200
+    },
+    "choices": {
+      "type": "array",
+      "description": "Answer options, in display order. Every question uses the same choices. Defaults to the four shown below.",
+      "default": ["Fine", "Fine with reservations", "Uncomfortable", "Unacceptable"],
+      "minItems": 2,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "\\S",
+        "maxLength": 200
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "Asked in order.",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The question or scenario, shown large.",
+            "pattern": "\\S",
+            "maxLength": 500
+          },
+          "detail": {
+            "type": "string",
+            "description": "Optional context, shown in smaller text under the question.",
+            "maxLength": 1000
+          }
+        }
+      }
+    }
+  }
+}

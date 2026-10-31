@@ -1,0 +1,25 @@
+{
+  "$schema": "./questions.schema.json",
+  "title": "Engineering Ethics (sample questions)",
+  "questions": [
+    {
+      "text": "A SaaS company adds rate limits and CAPTCHAs specifically to stop customers from scraping their own data out of the product.",
+      "detail": "The product has no export feature. The terms of service say customers own their data."
+    },
+    {
+      "text": "Your team ships a feature that doesn't work with screen readers to hit a launch date, planning to fix it next quarter."
+    },
+    {
+      "text": "Your company trains an AI model on customer support transcripts. The privacy policy permits it, but customers were never told directly."
+    },
+    {
+      "text": "Product asks you to make cancelling a subscription require a phone call, while signing up takes one click."
+    },
+    {
+      "text": "You find a security vulnerability in last year's release. It's patched, there's no evidence it was exploited, and leadership decides not to tell customers."
+    },
+    {
+      "text": "You ship code written by an AI assistant that passes every test, but you don't fully understand how it works."
+    }
+  ]
+}
