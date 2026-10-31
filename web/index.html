@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulse Check</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #111; color: #eee; display: grid; place-items: center; min-height: 100vh; margin: 0; text-align: center; }
+    #tick { font-size: 2rem; font-variant-numeric: tabular-nums; }
+    #status { color: #999; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Pulse Check</h1>
+    <p id="tick">connecting…</p>
+    <p id="status"></p>
+  </main>
+  <script>
+    const tick = document.getElementById("tick");
+    const status = document.getElementById("status");
+    let count = 0;
+    const es = new EventSource("/stream");
+    es.onopen = () => { status.textContent = "live"; };
+    es.onmessage = (e) => { count++; tick.textContent = e.data; status.textContent = `live · ${count} events`; };
+    es.onerror = () => { status.textContent = "reconnecting…"; };
+  </script>
+</body>
+</html>
