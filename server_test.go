@@ -343,7 +343,7 @@ func TestEventStreamHeartbeatAndCleanup(t *testing.T) {
 		select {
 		case line := <-s.lines:
 			sawRetry = sawRetry || line == "retry: 2000"
-			sawPing = line == ": ping"
+			sawPing = line == "event: ping"
 		case <-timeout:
 			t.Fatal("no heartbeat received")
 		}

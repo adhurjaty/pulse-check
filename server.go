@@ -227,7 +227,7 @@ func (s *Server) handleCSV(w http.ResponseWriter, r *http.Request, room *Room) {
 }
 
 // handleEvents streams the room's snapshot as Server-Sent Events: once on
-// connect, then after every change, with heartbeat comments in between.
+// connect, then after every change, with heartbeat "ping" events in between.
 // The browser's EventSource reconnects on its own if the connection drops.
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request, room *Room) {
 	voter, ok := voterParam(w, r)
@@ -289,7 +289,9 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request, room *Room
 				return
 			}
 		case <-heartbeat.C:
-			if _, err := io.WriteString(w, ": ping\n\n"); err != nil {
+			// A named event (not a comment) so the page can see it and
+			// detect a connection that has silently died.
+			if _, err := io.WriteString(w, "event: ping\ndata: {}\n\n"); err != nil {
 				return
 			}
 			if err := rc.Flush(); err != nil {

@@ -2,28 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
   <title>Pulse Check</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #111; color: #eee; display: grid; place-items: center; min-height: 100vh; margin: 0; text-align: center; }
-    #tick { font-size: 2rem; font-variant-numeric: tabular-nums; }
-    #status { color: #999; }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <div id="conn" class="conn" role="status" hidden>Reconnecting…</div>
+
   <main>
-    <h1>Pulse Check</h1>
-    <p id="tick">connecting…</p>
-    <p id="status"></p>
+    <section data-screen="join">
+      <h1>Pulse Check</h1>
+      <form id="join-form" novalidate>
+        <label for="code">Room code</label>
+        <input id="code" name="code" maxlength="4" placeholder="ABCD"
+               autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go">
+        <button type="submit" class="primary" id="join-button">Join</button>
+        <p class="error" id="join-error" role="alert"></p>
+      </form>
+    </section>
+
+    <section data-screen="lobby" hidden>
+      <p class="eyebrow" data-field="title"></p>
+      <h1>You're in</h1>
+      <p class="muted">Waiting for the host to start. Keep this page open.</p>
+      <p class="muted" data-field="participants"></p>
+    </section>
+
+    <section data-screen="voting" hidden>
+      <p class="eyebrow" data-field="progress"></p>
+      <h2 data-field="question"></h2>
+      <p class="muted" data-field="detail"></p>
+      <div class="choices" role="group" aria-label="Your answer"></div>
+      <p class="vote-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section data-screen="results" hidden>
+      <p class="eyebrow" data-field="progress"></p>
+      <h2 data-field="question"></h2>
+      <div class="bars"></div>
+      <p class="muted" data-field="note"></p>
+    </section>
+
+    <section data-screen="done" hidden>
+      <h1>That's everything</h1>
+      <p class="muted">Thanks for taking part. You can close this page.</p>
+    </section>
   </main>
-  <script>
-    const tick = document.getElementById("tick");
-    const status = document.getElementById("status");
-    let count = 0;
-    const es = new EventSource("/stream");
-    es.onopen = () => { status.textContent = "live"; };
-    es.onmessage = (e) => { count++; tick.textContent = e.data; status.textContent = `live · ${count} events`; };
-    es.onerror = () => { status.textContent = "reconnecting…"; };
-  </script>
+
+  <footer class="room-footer" id="room-footer" hidden>
+    Room <span class="room-code"></span> · <a href="/">Leave</a>
+  </footer>
+
+  <script src="/common.js"></script>
+  <script src="/play.js"></script>
 </body>
 </html>

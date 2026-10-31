@@ -1,0 +1,185 @@
+/* Shared styles for the student and host pages. Colors follow the data-viz
+   reference palette (chart chrome and ink), with dark values for dark mode. */
+:root {
+  color-scheme: light dark;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --hairline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --track: #f0efec;
+  --danger: #b42828;
+  --focus: #2a78d6;
+  --radius: 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --hairline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --track: #262624;
+    --danger: #f08a87;
+    --focus: #6da7ec;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--page);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 5rem;
+}
+
+h1, h2 { line-height: 1.2; margin: 0 0 0.75rem; }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.35rem; font-weight: 650; }
+p { margin: 0 0 0.75rem; }
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.muted { color: var(--ink-2); }
+.error { color: var(--danger); font-weight: 500; min-height: 1.4em; }
+
+/* Forms */
+label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+input {
+  width: 100%;
+  font: inherit;
+  font-size: 2rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em; /* balances the space letter-spacing adds after the last letter */
+  text-align: center;
+  text-transform: uppercase;
+  padding: 0.6rem;
+  border: 2px solid var(--baseline);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+input::placeholder { color: var(--hairline); }
+input:focus { outline: none; border-color: var(--focus); }
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button:disabled { cursor: default; opacity: 0.6; }
+
+.primary {
+  display: block;
+  width: 100%;
+  min-height: 3.25rem;
+  margin: 1rem 0 0.75rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--page);
+  font-weight: 650;
+}
+
+/* Answer buttons */
+.choices { display: grid; gap: 0.6rem; margin: 1.25rem 0 1rem; }
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  min-height: 3.6rem;
+  padding: 0.7rem 1rem 0.7rem 0.8rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: left;
+  font-weight: 550;
+  transition: border-color 120ms, transform 80ms;
+}
+.choice:active { transform: scale(0.985); }
+.choice .swatch { flex: none; width: 0.9rem; height: 2rem; border-radius: 4px; }
+.choice .label { flex: 1; }
+.choice .check { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 2px solid var(--baseline); display: grid; place-items: center; font-size: 0.95rem; }
+.choice[aria-pressed="true"] { border-color: var(--ink); }
+.choice[aria-pressed="true"] .check { background: var(--ink); border-color: var(--ink); color: var(--page); }
+.choice[aria-pressed="true"] .check::after { content: "✓"; }
+.choices.closed .choice { opacity: 0.55; }
+
+.vote-status { color: var(--ink-2); min-height: 2.8em; }
+.vote-status.error { color: var(--danger); }
+
+/* Results bars: horizontal, direct-labeled (choice, count and percent on
+   every row), square at the baseline and rounded at the data end. */
+.bars { display: grid; gap: 0.9rem; margin: 1.25rem 0; }
+.bar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.3rem; }
+.bar-label { font-weight: 550; }
+.bar-value { color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar-track { height: 1.1rem; background: var(--track); border-radius: 0 4px 4px 0; border-left: 2px solid var(--baseline); }
+.bar-fill { height: 100%; border-radius: 0 4px 4px 0; min-width: 0; transition: width 400ms ease-out; }
+.tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--ink-2);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: 0.15em;
+  color: var(--ink-2);
+}
+
+/* Connection banner and footer */
+.conn {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  padding: calc(0.4rem + env(safe-area-inset-top)) 1rem 0.4rem;
+  background: var(--ink);
+  color: var(--page);
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 10;
+}
+.room-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: var(--page);
+  border-top: 1px solid var(--hairline);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.room-footer a { color: var(--ink-2); }
+.room-footer .room-code { font-weight: 700; letter-spacing: 0.1em; color: var(--ink-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

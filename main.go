@@ -84,39 +84,18 @@ func routes(api *Server) http.Handler {
 		panic(err)
 	}
 	mux := http.NewServeMux()
-	mux.Handle("GET /", http.FileServerFS(static))
+	files := http.FileServerFS(static)
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		// Revalidate on every load, so phones never keep an old copy after a redeploy.
+		w.Header().Set("Cache-Control", "no-cache")
+		files.ServeHTTP(w, r)
+	})
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprintln(w, "ok")
 	})
-	mux.HandleFunc("GET /stream", handleStream)
 	api.Register(mux)
 	return mux
-}
-
-// handleStream sends the server time once a second over SSE. It exists to
-// verify that the reverse proxy streams events without buffering them.
-func handleStream(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("X-Accel-Buffering", "no")
-	rc := http.NewResponseController(w)
-
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-	for {
-		if _, err := fmt.Fprintf(w, "data: %s\n\n", time.Now().UTC().Format(time.RFC3339)); err != nil {
-			return
-		}
-		if err := rc.Flush(); err != nil {
-			return
-		}
-		select {
-		case <-r.Context().Done():
-			return
-		case <-ticker.C:
-		}
-	}
 }
 
 func env(key, fallback string) string {
