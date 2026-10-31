@@ -71,6 +71,13 @@ func NewRoom(code string, set QuestionSet) *Room {
 	return r
 }
 
+// Code returns the room code, which never changes.
+func (r *Room) Code() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.s.Code
+}
+
 func (r *Room) Position() Position {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -224,6 +231,17 @@ func (r *Room) countsLocked(i int) []int {
 		c[v]++
 	}
 	return c
+}
+
+// Results returns the title, choices and per-question counts for export.
+// It includes every question, whatever phase the room is in.
+func (r *Room) Results() (title string, choices []string, results []QuestionResult) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for i, q := range r.s.Set.Questions {
+		results = append(results, QuestionResult{Text: q.Text, Counts: r.countsLocked(i)})
+	}
+	return r.s.Set.Title, append([]string(nil), r.s.Set.Choices...), results
 }
 
 func (r *Room) MarshalJSON() ([]byte, error) {

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -18,21 +19,42 @@ import (
 //go:embed web
 var webFS embed.FS
 
+// Configuration, from environment variables:
+//
+//	PORT      port to listen on (default 8080)
+//	DATA_DIR  directory for state.json (default ./data)
+//	HOST_PIN  secret for host controls; host routes are disabled if unset
 func main() {
 	addr := ":" + env("PORT", "8080")
+	dataDir := env("DATA_DIR", "data")
+	hostPin := os.Getenv("HOST_PIN")
+
+	store, err := OpenStore(filepath.Join(dataDir, "state.json"))
+	if err != nil {
+		log.Fatalf("open store: %v", err)
+	}
+	if hostPin == "" {
+		log.Println("WARNING: HOST_PIN is not set, so host controls are disabled")
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           routes(),
+		Handler:           routes(NewServer(store, hostPin)),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
-		// No WriteTimeout: SSE responses stay open indefinitely.
+		// No WriteTimeout: event streams stay open indefinitely.
 		// Request contexts derive from ctx, so open streams end on shutdown.
 		BaseContext: func(net.Listener) context.Context { return ctx },
 	}
+
+	storeDone := make(chan struct{})
+	go func() {
+		store.Run(ctx, 500*time.Millisecond)
+		close(storeDone)
+	}()
 
 	go func() {
 		log.Printf("listening on %s", addr)
@@ -48,9 +70,15 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Printf("shutdown: %v", err)
 	}
+	<-storeDone
+	if err := store.Flush(); err != nil {
+		log.Printf("final save failed: %v", err)
+	} else {
+		log.Println("state saved")
+	}
 }
 
-func routes() http.Handler {
+func routes(api *Server) http.Handler {
 	static, err := fs.Sub(webFS, "web")
 	if err != nil {
 		panic(err)
@@ -62,6 +90,7 @@ func routes() http.Handler {
 		fmt.Fprintln(w, "ok")
 	})
 	mux.HandleFunc("GET /stream", handleStream)
+	api.Register(mux)
 	return mux
 }
 
