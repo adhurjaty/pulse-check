@@ -54,6 +54,7 @@ func NewServer(store *Store, hostPin string) *Server {
 //	POST /api/rooms/{code}/vote       any   {"voter", "question", "choice"}
 //	POST /api/rooms/{code}/control    host  {"action": "advance"|"back", "phase", "index"}
 //	GET  /api/rooms/{code}/results.csv host  results for every question
+//	GET  /api/rooms/{code}/qr.svg     any   QR code of the room's join link
 //
 // Host routes need the X-Host-Pin header.
 func (s *Server) Register(mux *http.ServeMux) {
@@ -67,6 +68,7 @@ func (s *Server) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/rooms/{code}/vote", s.withRoom(s.handleVote))
 	mux.HandleFunc("POST /api/rooms/{code}/control", s.host(s.withRoom(s.handleControl)))
 	mux.HandleFunc("GET /api/rooms/{code}/results.csv", s.host(s.withRoom(s.handleCSV)))
+	mux.HandleFunc("GET /api/rooms/{code}/qr.svg", s.withRoom(s.handleQR))
 }
 
 // host rejects requests without the right X-Host-Pin. If no PIN is

@@ -19,6 +19,11 @@ import (
 //go:embed web
 var webFS embed.FS
 
+// The sample file and schema are offered as downloads on the host page.
+//
+//go:embed sample-questions.json questions.schema.json
+var docsFS embed.FS
+
 // Configuration, from environment variables:
 //
 //	PORT      port to listen on (default 8080)
@@ -90,6 +95,16 @@ func routes(api *Server) http.Handler {
 		w.Header().Set("Cache-Control", "no-cache")
 		files.ServeHTTP(w, r)
 	})
+	mux.HandleFunc("GET /host", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		http.ServeFileFS(w, r, static, "host.html")
+	})
+	for _, name := range []string{"sample-questions.json", "questions.schema.json"} {
+		mux.HandleFunc("GET /"+name, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache")
+			http.ServeFileFS(w, r, docsFS, name)
+		})
+	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprintln(w, "ok")

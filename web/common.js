@@ -20,8 +20,14 @@ const Pulse = (() => {
   };
   const darkQuery = matchMedia("(prefers-color-scheme: dark)");
 
+  // isDark follows <html data-theme> if a page set it, else the OS setting.
+  function isDark() {
+    const theme = document.documentElement.dataset.theme;
+    return theme ? theme === "dark" : darkQuery.matches;
+  }
+
   function choiceColors(n) {
-    const p = darkQuery.matches ? PALETTES.dark : PALETTES.light;
+    const p = isDark() ? PALETTES.dark : PALETTES.light;
     const arm = Math.floor(n / 2);
     if (arm < 1 || arm > 3) return Array(n).fill(p.mid);
     const colors = [...p.blue[arm - 1]];
@@ -64,6 +70,51 @@ const Pulse = (() => {
         );
       }),
     );
+  }
+
+  // textOn picks dark or white text for a label inside a colored fill.
+  function textOn(hex) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const lin = (c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    return L > 0.3 ? "#0b0b0b" : "#ffffff";
+  }
+
+  // legend lists the choices with their colors (used with stacked bars,
+  // where segments are too small to name).
+  function legend(choices) {
+    const colors = choiceColors(choices.length);
+    return el(
+      "div",
+      { class: "legend" },
+      ...choices.map((c, i) => {
+        const swatch = el("i", { "aria-hidden": "true" });
+        swatch.style.background = colors[i];
+        return el("span", {}, swatch, c);
+      }),
+    );
+  }
+
+  // stackedBar draws one 100% bar split by choice. Segments of 7% or more
+  // show their percent; every segment has a tooltip with the full numbers.
+  function stackedBar(choices, counts) {
+    const total = counts.reduce((a, b) => a + b, 0);
+    if (!total) return el("div", { class: "stack-empty" }, "No votes");
+    const colors = choiceColors(choices.length);
+    const bar = el("div", { class: "stack", role: "img" });
+    const parts = [];
+    choices.forEach((c, i) => {
+      if (!counts[i]) return;
+      const pct = Math.round((100 * counts[i]) / total);
+      parts.push(`${c}: ${counts[i]} (${pct}%)`);
+      const seg = el("div", { title: `${c}: ${counts[i]} of ${total} (${pct}%)` }, pct >= 7 ? `${pct}%` : "");
+      seg.style.flex = `${counts[i]} 0 0`;
+      seg.style.background = colors[i];
+      seg.style.color = textOn(colors[i]);
+      bar.append(seg);
+    });
+    bar.setAttribute("aria-label", parts.join(", "));
+    return bar;
   }
 
   // api sends a JSON request. On failure it throws an Error with .status
@@ -189,5 +240,5 @@ const Pulse = (() => {
     return { close };
   }
 
-  return { api, connect, el, renderBars, choiceColors, onThemeChange, voterId };
+  return { api, connect, el, renderBars, stackedBar, legend, choiceColors, isDark, onThemeChange, voterId };
 })();

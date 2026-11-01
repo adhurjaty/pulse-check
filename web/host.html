@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>Pulse Check · Host</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="host">
+  <div id="conn" class="conn" role="status" hidden>Reconnecting…</div>
+
+  <!-- 1. Host PIN -->
+  <main data-screen="pin" hidden>
+    <h1>Pulse Check host</h1>
+    <form id="pin-form">
+      <label for="pin">Host PIN</label>
+      <input id="pin" class="pin" type="password" autocomplete="current-password" required>
+      <button type="submit" class="primary">Continue</button>
+      <p class="error" id="pin-error" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- 2. Create or resume a room -->
+  <main data-screen="setup" hidden>
+    <h1>Start a session</h1>
+    <div class="card">
+      <h2>New room</h2>
+      <p class="muted">Upload a question file (JSON).</p>
+      <input id="file" type="file" accept=".json,application/json">
+      <button id="create" class="primary" disabled>Create room</button>
+      <p class="error" id="create-error" role="alert"></p>
+      <ul class="problems" id="problems" hidden></ul>
+      <p class="muted small">Need a starting point? Download the
+        <a href="/sample-questions.json" download>sample file</a> or the
+        <a href="/questions.schema.json" download>schema</a>.</p>
+    </div>
+    <div class="card">
+      <h2>Resume a room</h2>
+      <form id="resume-form" class="row">
+        <input id="resume-code" maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code">
+        <button type="submit" class="secondary">Resume</button>
+      </form>
+      <p class="error" id="resume-error" role="alert"></p>
+    </div>
+    <button class="link" id="forget-pin">Forget the host PIN on this device</button>
+  </main>
+
+  <!-- 3. The live room, for the projector -->
+  <div class="room" data-screen="room" hidden>
+    <header class="host-bar">
+      <span>Join at <strong class="join-host"></strong> with code <strong class="room-code"></strong></span>
+      <span class="participants"></span>
+    </header>
+
+    <div class="stage">
+      <section data-view="lobby" hidden>
+        <p class="eyebrow" data-field="title"></p>
+        <div class="join-grid">
+          <img class="qr" alt="QR code to join this room">
+          <div class="join-steps">
+            <p>Scan the code, or go to</p>
+            <div class="join-url"></div>
+            <p>and enter</p>
+            <div class="big-code room-code"></div>
+            <div class="joined"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="voting" hidden>
+        <p class="eyebrow" data-field="progress"></p>
+        <h1 class="question-text" data-field="question"></h1>
+        <p class="detail" data-field="detail"></p>
+        <div class="vote-progress">
+          <div class="count" data-field="voted"></div>
+          <div class="meter"><div></div></div>
+        </div>
+      </section>
+
+      <section data-view="results" hidden>
+        <p class="eyebrow" data-field="progress"></p>
+        <h1 class="question-text" data-field="question"></h1>
+        <div class="bars"></div>
+        <p class="note" data-field="note"></p>
+      </section>
+
+      <section data-view="done" hidden>
+        <p class="eyebrow" data-field="title"></p>
+        <h1 class="question-text">Summary</h1>
+        <div class="legend-slot"></div>
+        <div class="summary"></div>
+      </section>
+    </div>
+
+    <nav class="controls" aria-label="Host controls">
+      <button id="back" class="secondary"></button>
+      <button id="advance" class="primary"></button>
+      <button id="csv" class="secondary" hidden>Download CSV</button>
+      <span class="message" id="control-error" role="alert"></span>
+      <span class="hint">→ or Space: next · ←: back · F: full screen · T: theme</span>
+      <button id="theme" class="secondary" aria-label="Switch light or dark theme">Theme</button>
+      <button id="exit" class="secondary">Leave</button>
+    </nav>
+  </div>
+
+  <script src="/common.js"></script>
+  <script src="/host.js"></script>
+</body>
+</html>
