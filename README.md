@@ -82,3 +82,20 @@ Options: `-n` (students, default 150), `-think` (students answer within this lon
 ## Deploy
 
 Coolify on the Hetzner server builds the `Dockerfile` and serves the app behind its Caddy proxy (TLS through Let's Encrypt) at `https://pulse.5.78.111.152.sslip.io`. The container listens on port `8080`.
+
+Production settings in Coolify (all needed for a live session):
+
+- **Persistent storage** `pulse-check-data` mounted at `/data`, so rooms survive restarts and redeploys.
+- **`HOST_PIN`** environment variable. The local copy is in `~/.config/pulse-check/host-pin`.
+- **Consistent container name** turned on. Without it Coolify does a rolling update: it starts the new container, which loads the saved state, and keeps the old one serving for about 20 s. During that overlap Caddy sends requests to both, so the two copies of a room drift apart, and the old container overwrites the state file when it stops. With a consistent name, Coolify stops the old container before starting the new one. Phones show "Reconnecting…" for a few seconds, then catch up, and Caddy holds requests sent during the gap until the new container is up.
+- **Auto deploy** turned off, so a push can't restart the app during a session. Deploy from Coolify, or with `POST /api/v1/deploy`.
+
+## Backup slides
+
+If the app can't be reached, run the poll by show of hands instead:
+
+```sh
+go run ./cmd/slides -o backup.html questions.json
+```
+
+This writes one self-contained HTML file: a title slide listing the numbered choices, then a slide per question. It needs no network. → / Space / click go forward, ← goes back, F toggles full screen. Printing it gives one slide per page.
