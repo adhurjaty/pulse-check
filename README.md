@@ -69,6 +69,16 @@ Room codes are case-insensitive. Voter IDs are 1–64 characters of `[A-Za-z0-9_
 
 Also available: `GET /healthz`, plus `GET /sample-questions.json` and `GET /questions.schema.json` (linked from the host page).
 
+## Load test
+
+`cmd/loadtest` runs a whole session with simulated students. Each one has its own connection, joins, keeps a live event stream open, and answers every question after a random delay. One in five change their answer once, and some drop their stream during question 2 and reconnect. It checks that every student sees every step, that each question's counts and the CSV match the students' final answers, and that a repeated "next" press is rejected.
+
+```sh
+go run ./cmd/loadtest -url https://pulse.5.78.111.152.sslip.io -n 150 -pin-file ~/.config/pulse-check/host-pin
+```
+
+Options: `-n` (students, default 150), `-think` (students answer within this long, default 8s), `-ramp` (spread joins over this long, default 10s), `-drops` (students who drop and reconnect, default 10), `-questions` (default `sample-questions.json`). It prints the latency of each step, from the host's press to each student receiving it, and exits non-zero on any error or if an update takes longer than 2 s. It leaves a finished room behind. On macOS, run `ulimit -n 4096` first for runs above about 200 students.
+
 ## Deploy
 
 Coolify on the Hetzner server builds the `Dockerfile` and serves the app behind its Caddy proxy (TLS through Let's Encrypt) at `https://pulse.5.78.111.152.sslip.io`. The container listens on port `8080`.
